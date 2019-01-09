@@ -11,7 +11,7 @@ with open('zh-en.en', 'r', encoding='utf8') as f:
 from tqdm import tqdm
 
 en_list = []
-for line in tqdm(data[:100000]):
+for line in tqdm(data):
     for c in ['\n', '\t', '\xa0', '&nbsp', '\xad', '�', '\u200b', '\u3000', '\x9d']:
         line = line.replace(c, '')
     en_list.append(line)
@@ -71,7 +71,7 @@ from tqdm import tqdm
 
 symbol_list = ['\xa0', '\n', ' ', '\t', '\u200b', '\u3000', '\xad']
 zh_list = []
-for line in tqdm(data[:100000]):
+for line in tqdm(data):
     for c in symbol_list:
         line = line.replace(c, '')
     zh_list.append(line)

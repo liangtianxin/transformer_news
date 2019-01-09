@@ -313,8 +313,8 @@ class Transformer():
                                                     is_training=self.is_training,
                                                     causality=False)
 
-            ### Feed Forward
-            self.enc = feedforward(self.enc, num_units=[4*self.hidden_units, self.hidden_units])
+                    ### Feed Forward
+                    self.enc = feedforward(self.enc, num_units=[4*self.hidden_units, self.hidden_units])
 
         # Decoder
         with tf.variable_scope("decoder"):
@@ -357,8 +357,8 @@ class Transformer():
                                                     causality=True,
                                                     scope='vanilla_attention')
 
-            ### Feed Forward
-            self.outputs = feedforward(self.dec, num_units=[4*self.hidden_units, self.hidden_units])
+                    ### Feed Forward
+                    self.outputs = feedforward(self.dec, num_units=[4*self.hidden_units, self.hidden_units])
 
         # Final linear projection
         self.logits = tf.layers.dense(self.outputs, self.label_vocab_size)
