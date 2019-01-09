@@ -30,12 +30,12 @@ for line in en_list[100:110]: print(line)
 """
 
 def en_pre(en_list):
-    
+
     symbol_list = [',', ':', '.', '?', '!', ')', '(', '-', '“', '”', '’', '‘',
                    '/', '"', '\'', '\\', '–', ';', '[', ']', '—', '…', '@', '#',
                    '$', '&', '*', '_', '=']
     num_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '%']
-    
+
     for i in range(len(en_list)):
         line = en_list[i]
         line = line.lower()
@@ -55,15 +55,17 @@ for line in tqdm(en_list):
     line = line.split(' ')
     line = [word for word in line if word not in ['', ' ']]
     en_data.append(line)
-    
+
 for line in en_data[100:110]:
     print(line)
 
-en_vocab = ['<PAD>']
+en_vocab = {'<PAD>':0}
+index = 0
 for line in tqdm(en_data):
     for word in line:
         if word not in en_vocab:
-            en_vocab.append(word)
+            index += 1
+            en_vocab[word] =  index
 
 for i in range(len(en_vocab)//20):
     begin = i*20
@@ -88,11 +90,13 @@ for line in zh_list[:10]: print(line)
 
 """- 构造中文字典"""
 
-zh_vocab = ['<PAD>', '<GO>', '<EOS>']
+zh_vocab = {'<PAD>':0, '<GO>':1, '<EOS>':2}
+index = 2
 for line in tqdm(zh_list):
     for char in line:
         if char not in zh_vocab:
-            zh_vocab.append(char)
+            index += 1
+            zh_vocab[char] = index
 
 print(len(zh_vocab))
 
@@ -101,9 +105,9 @@ print(len(en_data))
 
 """## 1.2 构建数据生成器"""
 
-encoder_inputs = [[en_vocab.index(word) for word in line] for line in tqdm(en_data)]
-decoder_inputs = [[zh_vocab.index('<GO>')] + [zh_vocab.index(word) for word in line] for line in tqdm(zh_list)]
-decoder_targets = [[zh_vocab.index(word) for word in line] + [zh_vocab.index('<EOS>')] for line in tqdm(zh_list)]
+encoder_inputs = [[en_vocab[word] for word in line] for line in tqdm(en_data)]
+decoder_inputs = [[zh_vocab['<GO>']] + [zh_vocab[word] for word in line] for line in tqdm(zh_list)]
+decoder_targets = [[zh_vocab[word] for word in line] + [zh_vocab['<EOS>']] for line in tqdm(zh_list)]
 
 print(decoder_inputs[:4])
 print(decoder_targets[:4])
@@ -149,7 +153,7 @@ def create_hparams():
         is_training = True)
     return params
 
-        
+
 arg = create_hparams()
 arg.input_vocab_size = len(en_vocab)
 arg.label_vocab_size = len(zh_vocab)
@@ -160,7 +164,7 @@ import os
 from tqdm import tqdm
 from transformer import Transformer
 
-epochs = 5
+epochs = 10
 batch_size = 32
 
 g = Transformer(arg)
@@ -188,28 +192,3 @@ with tf.Session() as sess:
                 print('epochs', k+1, ', iters', i+1, ': average loss = ', total_loss/(i + 1))
     saver.save(sess, 'logs/model')
     writer.close()
-
-arg.is_training = False
-arg.dropout_rate = 0.
-
-g = Graph(arg)
-
-saver =tf.train.Saver()
-
-with tf.Session() as sess:
-    saver.restore(sess, 'logs/model')
-    while True:
-        line = input('input: ')
-        if line == 'exit': break
-        line = line.lower().replace(',', ' ,').strip('\n').split(' ')
-        x = np.array([en_vocab.index(pny) for pny in line])
-        x = x.reshape(1, -1)
-        de_inp = [[zh_vocab.index('<GO>')]]
-        while True:
-            y = np.array(de_inp)
-            preds = sess.run(g.preds, {g.x: x, g.de_inp: y})
-            if preds[0][-1] == zh_vocab.index('<EOS>'):
-                break
-            de_inp[0].append(preds[0][-1])
-        got = ''.join(zh_vocab[idx] for idx in de_inp[0][1:])
-        print(got)
