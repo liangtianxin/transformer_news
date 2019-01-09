@@ -2,7 +2,7 @@
 import os
 from tqdm import tqdm
 from transformer import Transformer
-
+import tensorflow as tf
 
 
 with open('zh-en.en', 'r', encoding='utf8') as f:
@@ -61,10 +61,6 @@ for line in tqdm(en_data):
             index += 1
             en_vocab[word] =  index
 
-for i in range(len(en_vocab)//20):
-    begin = i*20
-    end = begin+20
-    print(en_vocab[begin:end])
 
 """- zh数据获取"""
 
@@ -159,6 +155,8 @@ g = Transformer(arg)
 
 saver =tf.train.Saver()
 
+de_zh_vocab = {v : k for k, v in zh_vocab.items()}
+
 with tf.Session() as sess:
     saver.restore(sess, 'logs/model')
     for i in range(100):
@@ -172,7 +170,7 @@ with tf.Session() as sess:
             if preds[0][-1] == zh_vocab['<EOS>']:
                 break
             de_inp[0].append(preds[0][-1])
-        got = ''.join(zh_vocab[idx] for idx in de_inp[0][1:])
+        got = ''.join(de_zh_vocab[idx] for idx in de_inp[0][1:])
         print('英文原文：', ''.join(en_list[i*1000]))
         print('中文原文：', zh_list[i*1000])
         print('识别结果：', got)

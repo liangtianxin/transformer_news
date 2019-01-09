@@ -10,6 +10,7 @@ Original file is located at
 
 - en数据获取
 """
+import tensorflow as tf
 
 with open('zh-en.en', 'r', encoding='utf8') as f:
     data = f.readlines()
@@ -66,11 +67,6 @@ for line in tqdm(en_data):
         if word not in en_vocab:
             index += 1
             en_vocab[word] =  index
-
-for i in range(len(en_vocab)//20):
-    begin = i*20
-    end = begin+20
-    print(en_vocab[begin:end])
 
 """- zh数据获取"""
 
